@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: fdlessard@gmail.com
+      changes:
+
+        - loadData:
+            tableName: customer
+            file: "db/data/customer.csv"
+            encoding: UTF-8
+            separator: ','
+            quotchar: "'"
+            columns:
+              - column:
+                  name: last_name
+                  type: string
+              - column:
+                  name: first_name
+                  type: string
+              - column:
+                  name: company
+                  type: string
+              - column:
+                  name: created_by
+                  type: string
+              - column:
+                  name: created_date
+                  type: date
+              - column:
+                  name: last_modified_by
+                  type: string
+              - column:
+                  name: last_modified_date
+                  type: date
+              - column:
+                  name: deleted_date
+                  type: date
+

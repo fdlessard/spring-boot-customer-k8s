@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  labels:
+    app: postgres
+data:
+  POSTGRES_DB: postgres
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: secret
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: account-api-config
+  labels:
+    app: account-api
+data:
+  POSTGRES_HOST: postgres
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: secret
+  POSTGRES_DB: postgres
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-db
+spec:
+  selector:
+    matchLabels:
+      app: postgres-db
+  replicas: 1
+  template: # template for the pods
+    metadata:
+      labels:
+        app: postgres-db
+    spec:
+      containers:
+        - name: postgres-container
+          image: postgres:13.0-alpine
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: postgres-config
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-api
+spec:
+  selector:
+    matchLabels:
+      app: account-api
+  replicas: 1
+  template: # template for the pods
+    metadata:
+      labels:
+        app: account-api
+    spec:
+      containers:
+        - name: spring-boot-customer-k8s
+          image: spring-boot-customer-k8s:latest
+          imagePullPolicy: Never
+          envFrom:
+            - configMapRef:
+                name: account-api-config
