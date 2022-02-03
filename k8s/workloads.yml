@@ -17,7 +17,7 @@ metadata:
   labels:
     app: account-api
 data:
-  POSTGRES_HOST: postgres
+  POSTGRES_HOST: postgres-svc
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: secret
   POSTGRES_DB: postgres
@@ -26,7 +26,7 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres-db
+  name: postgres-deploy
 spec:
   selector:
     matchLabels:
@@ -47,11 +47,10 @@ spec:
                 name: postgres-config
 
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: account-api
+  name: account-deploy
 spec:
   selector:
     matchLabels:
@@ -69,3 +68,65 @@ spec:
           envFrom:
             - configMapRef:
                 name: account-api-config
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: zookeeper-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zookeeper
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      containers:
+        - name: k8-zookeeper-container
+          image: confluentinc/cp-zookeeper:6.2.1
+          ports:
+            - containerPort: 2181
+          env:
+            - name: ZOOKEEPER_CLIENT_PORT
+              value: "2181"
+            - name: ZOOKEEPER_TICK_TIME
+              value: "2000"
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: kafka-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: k8-kafka-container
+          image: confluentinc/cp-kafka:6.2.1
+          ports:
+            - containerPort: 9092
+          env:
+            - name: KAFKA_BROKER_ID
+              value: "1"
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: zookeeper-svc:2181
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: PLAINTEXT://kafka-svc:9092,PLAINTEXT_HOST://localhost:30092
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: PLAINTEXT
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_CREATE_TOPICS
+              value: admintome-test:1:1

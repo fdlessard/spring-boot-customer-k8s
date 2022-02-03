@@ -14,3 +14,4 @@ kubectl -it exec posgres-db-77fbf5768c-7lwjv  -- sh
 
 psql -h localhost -U postgres --password -p 30001 postgres
 
+kubectl port-forward kafka-deploy-54666dbbf-5w5jf  30092
